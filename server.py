@@ -42,19 +42,21 @@ label_mapping = np.loadtxt(caffe_root+synset_file, str, delimiter='\t')
 def detect_face(image_name):
     img = cv2.imread(image_name)
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)  
-    faces = face_cascade.detectMultiScale(gray, 1.5, 3, minSize=(100, 100))
+    faces = face_cascade.detectMultiScale(gray, 1.4, 3, minSize=(200, 200))
 
     if len(faces)==0:
         return {"error":"No face detected. Please try other image."}
+    print "number of faces detected: "
+    print len(faces)
+    for index,face in enumerate(faces):
+        x,y,w,h = face
+        #drawing rectangle
+        cv2.rectangle(img,(x,y),(x+w,y+h),(255,0,0),2)
+        cv2.imwrite( "static/images/" + "detected_" +str(index) +"_"+ image_name,img)
 
-    x,y,w,h = faces[0]
-    #drawing rectangle
-    cv2.rectangle(img,(x,y),(x+w-20,y+h+50),(255,0,0),2)
-    cv2.imwrite( "static/images/" + "detected_" + image_name,img)
-
-    detected_face = img[y:y+h, x:x+w]
-    print "Detected face shape"
-    print detected_face.shape  
+        detected_face = img[y:y+h, x:x+w]
+        print "Detected face shape"
+        print detected_face.shape  
     # print detect_face.dtype
     return detected_face
 
@@ -74,14 +76,16 @@ def recognize_face(image_name):
 
     #predicted class
     predicted_class = output_prob.argmax()
+    accuracy = output_prob[predicted_class]
     print '\n Predicted class is:', predicted_class
-
+    print "Accuracy:"
+    print accuracy
     #getting name of the user
 
     user_recognized = label_mapping[predicted_class]
     print "Recognized user: " + user_recognized
 
-    return {"predicted_class":predicted_class,"recognized_user":user_recognized,"image":"detected_" + image_name}
+    return {"predicted_class":predicted_class,"accuracy":str(accuracy),"recognized_user":user_recognized,"image":"detected_" + image_name}
 
 app = Flask(__name__,static_url_path='')
 cors = CORS(app, resources={r"/*": {"origins": "*"}})

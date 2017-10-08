@@ -1,6 +1,6 @@
-var app = angular.module("FaceRecog", ['ui.bootstrap']);
+var app = angular.module("FaceRecog", ['ui.bootstrap','ngProgress']);
 
-app.controller('recognizeCtrl', ['$scope', '$http', function ($scope, $http) {
+app.controller('recognizeCtrl', ['$scope', '$http', 'ngProgress', function ($scope, $http,ngProgress) {
     // debugger
     $scope.imageURL="";
     $scope.isCollapsed = true;
@@ -13,6 +13,9 @@ app.controller('recognizeCtrl', ['$scope', '$http', function ($scope, $http) {
         $scope.errorMsg = "";
         $scope.isError=false;
     };
+    
+    // ngProgress.height('.2em');
+    // ngProgress.color('#fed136');
 
     $scope.recognizeByUrl = function () {
         debugger
@@ -38,7 +41,7 @@ app.controller('recognizeCtrl', ['$scope', '$http', function ($scope, $http) {
         // .error(function (data, status, headers, config) {
         //     debugger
         // });
-
+        ngProgress.start();
         $http.post('/recognizeByUrl', data, config)
         .then(
             function(response) {
@@ -50,12 +53,12 @@ app.controller('recognizeCtrl', ['$scope', '$http', function ($scope, $http) {
                     $scope.isCollapsed = false;
                     $scope.detectedFace = response.data.image;
                     $scope.recognizedUser = response.data.recognized_user;
-                    $scope.$applyAsync();
-                    return $scope.detectedFace;
+                    // $scope.$applyAsync();
+                    // return $scope.detectedFace;
 
                     // $scope.$apply();
                 }
-                
+                ngProgress.complete();
             }, function(response) {
                 debugger
             }
