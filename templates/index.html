@@ -70,12 +70,19 @@
         <button class="btn btn-primary" style="cursor: pointer;" type="button">Browse your Files</button>
         <br/>
         <div uib-collapse="isCollapsed" style="margin-top: 35px;">
-          <div ng-show="isError" uib-alert ng-class="danger" close="closeAlert()">{{errorMsg}}</div>
+          <div ng-show="isError" uib-alert ng-class="danger" close="closeAlert()">{{ '{{errorMsg}}' }}</div>
           <div class="well well-lg" style="padding: 20px 0px;">
-              {{ '{{message}}' }}
-            <img ng-src= {{ '{{"images/"+detectedFace}}' }} style="height:200px;width:200px" />
-            <br/><br/> Recognized User:
-            <label ng-bind="recognizedUser"></label>
+
+            <div class="row">
+              <div class="col-md-4" ng-repeat="face in detectedFaces" style="float: none;margin: 0 auto;">
+                  <img ng-src= {{ '{{"images/"+face.image}}' }} style="height:200px;width:200px" />
+                  <br/><br/> 
+                  Recognized User:
+                  <label ng-bind="face.recognized_user"></label><br/>
+                  Accuracy:
+                  <label ng-bind="face.accuracy"></label>
+              </div>
+            </div>
           </div>
         </div>
       </div>

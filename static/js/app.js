@@ -51,8 +51,9 @@ app.controller('recognizeCtrl', ['$scope', '$http', 'ngProgress', function ($sco
                     $scope.isError = true;
                 }else{
                     $scope.isCollapsed = false;
-                    $scope.detectedFace = response.data.image;
-                    $scope.recognizedUser = response.data.recognized_user;
+                    $scope.detectedFaces=response.data;
+                    // $scope.detectedFace = response.data.image;
+                    // $scope.recognizedUser = response.data.recognized_user;
                     // $scope.$applyAsync();
                     // return $scope.detectedFace;
 
@@ -61,6 +62,7 @@ app.controller('recognizeCtrl', ['$scope', '$http', 'ngProgress', function ($sco
                 ngProgress.complete();
             }, function(response) {
                 debugger
+                ngProgress.complete();
             }
         );
 

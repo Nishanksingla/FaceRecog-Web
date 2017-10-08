@@ -42,12 +42,14 @@ label_mapping = np.loadtxt(caffe_root+synset_file, str, delimiter='\t')
 def detect_face(image_name):
     img = cv2.imread(image_name)
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)  
-    faces = face_cascade.detectMultiScale(gray, 1.4, 3, minSize=(200, 200))
+    faces = face_cascade.detectMultiScale(gray, 1.1, 5)
 
     if len(faces)==0:
         return {"error":"No face detected. Please try other image."}
     print "number of faces detected: "
     print len(faces)
+    detected_faces=[]
+    # detected_images=[]
     for index,face in enumerate(faces):
         x,y,w,h = face
         #drawing rectangle
@@ -57,35 +59,48 @@ def detect_face(image_name):
         detected_face = img[y:y+h, x:x+w]
         print "Detected face shape"
         print detected_face.shape  
+        
+        detected_faces.append(detected_face)
     # print detect_face.dtype
-    return detected_face
+    return detected_faces
 
 def recognize_face(image_name):
-    detected_face = detect_face(image_name)
-    
-    if type(detect_face) == dict:
-        return jsonify(detect_face)
-    
-    transformed_image = transformer.preprocess('data', detected_face)
-    net.blobs['data'].data[...] = transformed_image
-    output = net.forward()
-    output_prob = output['prob'][0]
+    detected_faces = detect_face(image_name)
+    print "Detected faces shape"
+    print len(detected_faces)
+    output_faces = []
+    for face_id,detected_face in enumerate(detected_faces):
+        if type(detect_face) == dict:
+            return jsonify(detect_face)
+        
+        print "face_id"
+        print face_id
 
-    print "output probability: "
-    print output_prob
+        print "Detected face shape"
+        print type(detected_face)
+        print detected_face.shape
+        
+        transformed_image = transformer.preprocess('data', detected_face)
+        net.blobs['data'].data[...] = transformed_image
+        output = net.forward()
+        output_prob = output['prob'][0]
 
-    #predicted class
-    predicted_class = output_prob.argmax()
-    accuracy = output_prob[predicted_class]
-    print '\n Predicted class is:', predicted_class
-    print "Accuracy:"
-    print accuracy
-    #getting name of the user
+        print "output probability: "
+        print output_prob
 
-    user_recognized = label_mapping[predicted_class]
-    print "Recognized user: " + user_recognized
+        #predicted class
+        predicted_class = output_prob.argmax()
+        accuracy = output_prob[predicted_class]
+        print '\n Predicted class is:', predicted_class
+        print "Accuracy:"
+        print accuracy
+        #getting name of the user
 
-    return {"predicted_class":predicted_class,"accuracy":str(accuracy),"recognized_user":user_recognized,"image":"detected_" + image_name}
+        user_recognized = label_mapping[predicted_class]
+        print "Recognized user: " + user_recognized
+        img_name = "detected_" + str(face_id) + "_" + image_name
+        output_faces.append({"predicted_class": predicted_class, "accuracy": str(accuracy), "recognized_user": user_recognized, "image": img_name})
+    return output_faces
 
 app = Flask(__name__,static_url_path='')
 cors = CORS(app, resources={r"/*": {"origins": "*"}})
