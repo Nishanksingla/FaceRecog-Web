@@ -1,4 +1,4 @@
-var app = angular.module("FaceRecog", ['ui.bootstrap','ngProgress']);
+var app = angular.module("FaceRecog", ['ui.bootstrap','ngProgress','ngAnimate']);
 
 app.controller('recognizeCtrl', ['$scope', '$http', 'ngProgress', function ($scope, $http,ngProgress) {
     // debugger
@@ -49,6 +49,7 @@ app.controller('recognizeCtrl', ['$scope', '$http', 'ngProgress', function ($sco
                 if(response.data.error){
                     $scope.errorMsg = response.data.error;
                     $scope.isError = true;
+                    $scope.isCollapsed = false;
                 }else{
                     $scope.isCollapsed = false;
                     $scope.detectedFaces=response.data;

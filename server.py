@@ -42,7 +42,7 @@ label_mapping = np.loadtxt(caffe_root+synset_file, str, delimiter='\t')
 def detect_face(image_name):
     img = cv2.imread(image_name)
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)  
-    faces = face_cascade.detectMultiScale(gray, 1.1, 5)
+    faces = face_cascade.detectMultiScale(gray, 1.1, 5,minSize=(100,100))
 
     if len(faces)==0:
         return {"error":"No face detected. Please try other image."}
@@ -50,11 +50,12 @@ def detect_face(image_name):
     print len(faces)
     detected_faces=[]
     # detected_images=[]
+
     for index,face in enumerate(faces):
         x,y,w,h = face
         #drawing rectangle
         cv2.rectangle(img,(x,y),(x+w,y+h),(255,0,0),2)
-        cv2.imwrite( "static/images/" + "detected_" +str(index) +"_"+ image_name,img)
+        cv2.imwrite( "static/images/detected/" + "detected_" +str(index) +"_"+ image_name.split("/")[-1],img)
 
         detected_face = img[y:y+h, x:x+w]
         print "Detected face shape"
@@ -66,13 +67,12 @@ def detect_face(image_name):
 
 def recognize_face(image_name):
     detected_faces = detect_face(image_name)
+    if type(detected_faces) == dict:
+            return jsonify(detected_faces)
     print "Detected faces shape"
     print len(detected_faces)
     output_faces = []
     for face_id,detected_face in enumerate(detected_faces):
-        if type(detect_face) == dict:
-            return jsonify(detect_face)
-        
         print "face_id"
         print face_id
 
@@ -98,7 +98,7 @@ def recognize_face(image_name):
 
         user_recognized = label_mapping[predicted_class]
         print "Recognized user: " + user_recognized
-        img_name = "detected_" + str(face_id) + "_" + image_name
+        img_name = "detected/detected_" + str(face_id) + "_" + image_name.split("/")[-1]
         output_faces.append({"predicted_class": predicted_class, "accuracy": str(accuracy), "recognized_user": user_recognized, "image": img_name})
     return output_faces
 
@@ -108,6 +108,10 @@ cors = CORS(app, resources={r"/*": {"origins": "*"}})
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/facerecognition')
+def facerecognition():
+    return render_template('faceRecognition.html')
 
 @app.route('/recognizeByUrl', methods=['POST'])
 def recognizeByUrl():
@@ -125,9 +129,10 @@ def recognizeByUrl():
     imageName = url.split("/")[-1]
     imageFormat = imageName.split(".")[-1]
 
-    if imageFormat not in ["jpg","png","jpeg"]:
+    if imageFormat.lower() not in ["jpg","png","jpeg"]:
         return jsonify({"error":"Image Format not supported. Please try .jpg, .png & .jpeg format"})
-    
+    imageName = "static/images/uploaded/"+imageName
+    print "image name:" + imageName
     urllib.urlretrieve(url, imageName)
     output = recognize_face(imageName)
 
